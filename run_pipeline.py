@@ -1,33 +1,63 @@
+# run_pipeline.py
 import pandas as pd
+from parser.apache_parser import parse_apache_log
+from parser.ssh_parser import parse_ssh_log
 from detection.brute_force_detector import detect_brute_force
 
 def main():
-    print("\n🚀 Starting detection pipeline...\n")
+    print("\n🚀 Running SIEM pipeline (Apache + SSH)\n")
 
-    # Load parsed logs
+    # --- Parse Apache logs if available ---
     try:
-        df = pd.read_csv("data/parsed_apache.csv")
+        a = parse_apache_log("data/apache_logs.txt")
+        if not a.empty:
+            a.to_csv("data/parsed_apache.csv", index=False)
+            print(f"📄 Parsed Apache -> data/parsed_apache.csv ({len(a)} rows)")
+        else:
+            print("⚠️ Apache parser found 0 rows.")
     except FileNotFoundError:
-        print("❌ ERROR: parsed_apache.csv not found.")
-        print("Run apache_parser.py first.")
+        print("⚠️ Apache raw log (data/apache_logs.txt) not found. Run log_generator.generate_apache_logs()")
+
+    # --- Parse SSH logs if available ---
+    try:
+        s = parse_ssh_log("data/auth.log")
+        if not s.empty:
+            s.to_csv("data/parsed_ssh.csv", index=False)
+            print(f"📄 Parsed SSH -> data/parsed_ssh.csv ({len(s)} rows)")
+        else:
+            print("⚠️ SSH parser found 0 rows.")
+    except FileNotFoundError:
+        print("⚠️ SSH raw log (data/auth.log) not found. Run log_generator.generate_ssh_logs()")
+
+    # --- Load parsed files (if present) ---
+    parsed_list = []
+    try:
+        parsed_apache = pd.read_csv("data/parsed_apache.csv")
+        parsed_list.append(parsed_apache)
+    except:
+        parsed_apache = pd.DataFrame()
+
+    try:
+        parsed_ssh = pd.read_csv("data/parsed_ssh.csv")
+        parsed_list.append(parsed_ssh)
+    except:
+        parsed_ssh = pd.DataFrame()
+
+    if not parsed_list:
+        print("\n❌ No parsed sources available. Exiting.")
         return
 
-    print(f"📄 Loaded {len(df)} parsed log entries.\n")
-
-    # ----------------------
-    # 1. Brute Force Detector
-    # ----------------------
-    print("🔎 Running brute-force detection...")
-    alerts = detect_brute_force(df)
+    combined = pd.concat(parsed_list, ignore_index=True, sort=False)
+    print(f"\n🔎 Running brute-force detection on {len(combined)} combined rows...")
+    alerts = detect_brute_force(combined)
 
     if alerts.empty:
-        print("✅ No brute-force attacks detected.\n")
+        print("✅ No brute-force alerts detected.")
     else:
-        print("🚨 Brute-force attacks found:")
-        print(alerts.to_string(index=False))
-        print()
-
-    print("🎉 Pipeline finished.\n")
+        alerts.to_csv("data/brute_force_alerts.csv", index=False)
+        print(f"🚨 Alerts saved -> data/brute_force_alerts.csv ({len(alerts)} rows)")
+        print(alerts)
 
 if __name__ == "__main__":
     main()
+
