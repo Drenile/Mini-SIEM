@@ -1,63 +1,35 @@
-# ssh_parser.py
 import re
 import pandas as pd
-from datetime import datetime
 
-# Matches lines like:
-# Dec  2 02:12:55 server sshd[1245]: Failed password for root from 192.168.1.20 port 45322 ssh2
-# Dec  2 02:12:59 server sshd[1245]: Accepted password for admin from 10.0.0.5 port 51432 ssh2
 ssh_pattern = re.compile(
-    r'^(?P<month>\w+)\s+(?P<day>\d+)\s+(?P<time>\d{2}:\d{2}:\d{2})\s+'
-    r'(?P<host>\S+)\s+sshd\[\d+\]:\s+'
-    r'(?P<action>Failed|Accepted)\s+password\s+for\s+(?:invalid user\s+)?(?P<user>\S+)\s+from\s+(?P<ip>\S+)'
+    r'^(?P<timestamp>\S+ \S+)\s+\S+\s+sshd\[\d+\]:\s+'
+    r'(?P<action>Failed password for|Accepted password for)\s+'
+    r'(?:invalid user\s+)?(?P<user>\S+)\s+from\s+(?P<ip>\S+)\s+port\s+(?P<port>\d+)\s+ssh2'
 )
 
-MONTHS = {m: i+1 for i, m in enumerate(["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"])}
-
-def parse_ssh_log(file_path="data/auth.log"):
-    rows = []
-    year = datetime.now().year
+def parse_ssh_log(file_path):
+    parsed = []
 
     with open(file_path, "r") as f:
         for line in f:
-            m = ssh_pattern.match(line)
-            if not m:
-                continue
-            d = m.groupdict()
-            month = MONTHS.get(d['month'], 1)
-            day = int(d['day'])
-            ts_str = f"{year}-{month:02d}-{day:02d} {d['time']}"
-            try:
-                ts = pd.to_datetime(ts_str)
-            except:
-                ts = pd.NaT
+            m = ssh_pattern.match(line.strip())
+            if m:
+                parsed.append(m.groupdict())
+            else:
+                print("NO MATCH:", line)
 
-            status = 401 if d['action'] == 'Failed' else 200
+    df = pd.DataFrame(parsed)
 
-            rows.append({
-                "timestamp": ts,
-                "ip": d['ip'],
-                "user": d['user'],
-                "status": status,
-                "source": "ssh"
-            })
-
-    df = pd.DataFrame(rows)
     if df.empty:
-        print("⚠️ No SSH log entries parsed.")
-        return df
+        print("⚠ WARNING: SSH log parser found ZERO matches")
 
-    # ensure timestamp column exists and is datetime
-    df['timestamp'] = pd.to_datetime(df['timestamp'], errors='coerce')
-    df['status'] = pd.to_numeric(df['status'], errors='coerce').fillna(0).astype(int)
-
-    # consistent columns
-    cols = ['timestamp', 'ip', 'user', 'status', 'source']
-    return df[cols]
+    df["source"] = "ssh"
+    df["timestamp"] = pd.to_datetime(df["timestamp"], format="mixed", utc=True)
+    return df
 
 if __name__ == "__main__":
-    df = parse_ssh_log()
-    if not df.empty:
-        df.to_csv("data/parsed_ssh.csv", index=False)
-        print("✅ Parsed SSH saved → data/parsed_ssh.csv")
-        print(df.head())
+    df = parse_ssh_log("data/ssh_logs.txt")
+    df.to_csv("data/parsed_ssh.csv", index=False)
+    print("✔ SSH logs parsed → data/parsed_ssh.csv")
+    print(df.head())
+
