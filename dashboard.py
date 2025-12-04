@@ -3,7 +3,7 @@ import pandas as pd
 from dash import Dash, dcc, html, Output, Input
 import plotly.express as px
 import plotly.graph_objects as go
-from detection.brute_force_detector import detect_brute_force
+from detection.brute_force_detector import detect_bruteforce
 
 def load_combined():
     logs = []
@@ -28,7 +28,7 @@ def load_combined():
     # ensure timestamp exists and parsed
     combined['timestamp'] = pd.to_datetime(combined['timestamp'], errors='coerce')
     # run detection on combined
-    alerts = detect_brute_force(combined)
+    alerts = detect_bruteforce(combined)
     return combined, alerts
 
 app = Dash(__name__)

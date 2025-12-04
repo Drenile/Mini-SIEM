@@ -2,7 +2,7 @@
 import pandas as pd
 from parser.apache_parser import parse_apache_log
 from parser.ssh_parser import parse_ssh_log
-from detection.brute_force_detector import detect_brute_force
+from detection.brute_force_detector import detect_bruteforce
 
 def main():
     print("\n🚀 Running SIEM pipeline (Apache + SSH)\n")
@@ -20,14 +20,14 @@ def main():
 
     # --- Parse SSH logs if available ---
     try:
-        s = parse_ssh_log("data/auth.log")
+        s = parse_ssh_log("data/ssh_logs.txt")
         if not s.empty:
             s.to_csv("data/parsed_ssh.csv", index=False)
             print(f"📄 Parsed SSH -> data/parsed_ssh.csv ({len(s)} rows)")
         else:
             print("⚠️ SSH parser found 0 rows.")
     except FileNotFoundError:
-        print("⚠️ SSH raw log (data/auth.log) not found. Run log_generator.generate_ssh_logs()")
+        print("⚠️ SSH raw log (data/ssh_logs.txt) not found. Run log_generator.generate_ssh_logs()")
 
     # --- Load parsed files (if present) ---
     parsed_list = []
@@ -49,7 +49,7 @@ def main():
 
     combined = pd.concat(parsed_list, ignore_index=True, sort=False)
     print(f"\n🔎 Running brute-force detection on {len(combined)} combined rows...")
-    alerts = detect_brute_force(combined)
+    alerts = detect_bruteforce(combined)
 
     if alerts.empty:
         print("✅ No brute-force alerts detected.")
