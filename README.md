@@ -1,35 +1,13 @@
-# Mini-SIEM 🛡️
+# Mini-SIEM
 
-A lightweight Security Information and Event Management (SIEM) system that parses Apache and SSH logs, detects brute-force attacks, and provides real-time visualization of security threats.
+A lightweight SIEM system that parses Apache and SSH logs, detects brute-force attacks, and visualizes security threats.
 
-## Overview
+## Quick Features
 
-Mini-SIEM monitors both web server (Apache) and SSH authentication logs to identify coordinated brute-force attacks. The system:
-- **Parses** Apache HTTP logs and SSH authentication logs
-- **Detects** brute-force login attempts using time-window analysis
-- **Visualizes** threats with an interactive dashboard
-- **Tracks** attack sources and correlates attacks across services
-
-## Features
-
-✅ **Multi-Source Log Parsing**
-  - Apache HTTP logs (status codes, requests, user agents)
-  - SSH authentication logs (login attempts, user accounts)
-
-✅ **Brute-Force Detection**
-  - Identifies failed login patterns using 1-minute time windows
-  - Configurable threshold (default: 5+ failures per minute)
-  - Correlates attacks across Apache and SSH
-
-✅ **Interactive Dashboard**
-  - Real-time request timeline
-  - Status code distribution by source
-  - Brute-force alert visualization with IPs and source identification
-
-✅ **Automated Pipeline**
-  - Single-command processing of logs
-  - CSV output for parsed logs and alerts
-  - Structured data for integration with other tools
+- Dual log parsing (Apache + SSH)
+- Brute-force detection (5+ failed attempts/min)
+- Interactive dashboard (Plotly/Dash)
+- Cross-service correlation
 
 ## Project Structure
 
@@ -71,7 +49,7 @@ cd Mini-SIEM
 pip install -r requirements.txt
 ```
 
-## Quick Start 🚀
+## Quick Start
 
 ### TL;DR - Quick Commands
 
@@ -98,14 +76,14 @@ This will:
 
 **Example Output:**
 ```
-🚀 Running SIEM pipeline (Apache + SSH)
+Running SIEM pipeline (Apache + SSH)
 
-✔ Saved parsed Apache logs → data/parsed_apache.csv
-📄 Parsed Apache -> data/parsed_apache.csv (530 rows)
-📄 Parsed SSH -> data/parsed_ssh.csv (550 rows)
+Saved parsed Apache logs → data/parsed_apache.csv
+Parsed Apache -> data/parsed_apache.csv (530 rows)
+Parsed SSH -> data/parsed_ssh.csv (550 rows)
 
-🔎 Running brute-force detection on 1080 combined rows...
-🚨 Alerts saved -> data/brute_force_alerts.csv (6 rows)
+Running brute-force detection on 1080 combined rows...
+Alerts saved -> data/brute_force_alerts.csv (6 rows)
 ```
 
 ### Option 2: Interactive Dashboard
@@ -119,9 +97,9 @@ python dashboard.py
 Then open your browser to: **http://127.0.0.1:8050/**
 
 The dashboard displays:
-- 📊 Request volume over time
-- 📈 Status code distribution by source
-- 🚨 Detected brute-force attacks with IP addresses
+- Request volume over time
+- Status code distribution by source
+- Detected brute-force attacks with IP addresses
 
 ### Option 3: Step-by-Step Processing
 
@@ -166,17 +144,17 @@ ip,source,time,failed_attempts
 This project demonstrates key cybersecurity and software engineering skills:
 
 **Security Skills:**
-- ✅ Log analysis and parsing
-- ✅ Threat detection algorithm design
-- ✅ Multi-source attack correlation
-- ✅ Real-time security monitoring
+- Log analysis and parsing
+- Threat detection algorithm design
+- Multi-source attack correlation
+- Real-time security monitoring
 
 **Software Engineering:**
-- ✅ Data processing pipeline (pandas)
-- ✅ Interactive web visualization (Dash/Plotly)
-- ✅ Modular code architecture
-- ✅ Error handling and data validation
-- ✅ CSV data formats and parsing
+- Data processing pipeline (pandas)
+- Interactive web visualization (Dash/Plotly)
+- Modular code architecture
+- Error handling and data validation
+- CSV data formats and parsing
 
 **Technologies Used:**
 - Python (core language)
